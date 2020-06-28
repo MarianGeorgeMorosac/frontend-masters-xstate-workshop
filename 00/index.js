@@ -1,61 +1,38 @@
-import { createMachine } from 'xstate';
+import { createMachine, interpret } from "xstate";
 
-const elOutput = document.querySelector('#output');
-
-function output(object) {
-  elOutput.innerHTML = JSON.stringify(object, null, 2);
-}
-
-console.log('Welcome to the XState workshop!');
-
-const user = {
-  name: 'David Khourshid',
-  company: 'Microsoft',
-  interests: ['piano', 'state machines'],
-};
-
-output(user);
-
-const elButton = document.querySelector('#button');
-
-elButton.addEventListener('click', () => {
-  console.log('I am clicked!');
-})
-
-const machine = {
-  initial: 'idle',
+const feedbackMachine = createMachine({
+  initial: 'question',
   states: {
-    idle: {
+    question: {
       on: {
-        FETCH: 'pending'
+        CLICK_GOOD: {
+          target: 'thanks'
+        },
+        CLICK_BAD: 'form',
       }
     },
-    pending: {
+    form: {
       on: {
-        RESOLVE: 'resolved',
-        REJECT: 'rejected'
+        SUBMIT: 'thanks',
       }
     },
-    resolved: {},
-    rejected: {}
+    thanks: {
+      on: {
+        CLOSE: 'closed',
+      }
+    },
+    closed: {
+      type: 'final',
+    },
   }
-}
+});
 
-const transition = (state, event) => {
-  return machine.states[state]?.on?.[event] || state;
-}
+const feedbackService = interpret(feedbackMachine);
 
-let currentState = machine.initial;
+feedbackService.onTransition(state => {
+  console.log(state.value);
+});
 
-const send = event => {
-  const nextState = transition(currentState, event);
+feedbackService.start();
 
-  console.log(nextState);
-
-  currentState = nextState;
-}
-
-window.send = send;
-
-send("CLICK");
-// output(transition('pending', 'RESOLVE'))
+window.send = feedbackService.send;

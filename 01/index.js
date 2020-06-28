@@ -1,20 +1,36 @@
-const elBox = document.querySelector('#box');
+import { createMachine } from "xstate";
 
-const machine = {
-  initialState: 'inactive',
+const feedbackMachine = createMachine({
+  initialState: 'question',
   states: {
-    active: {
+    question: {
       on: {
-        click: 'inactive',
-      },
-    },
-    inactive: {
-      on: {
-        click: 'active',
+        CLICK_GOOD: {
+          // target: 'thanks'
+          target: 'form'
+        },
+        CLICK_BAD: 'form',
       }
-    }
+    },
+    form: {
+      on: {
+        SUBMIT: 'thanks',
+      }
+    },
+    thanks: {
+      on: {
+        CLOSE: 'closed',
+      }
+    },
+    closed: {
+      type: 'final',
+    },
   }
-};
+});
+
+console.log(feedbackMachine);
+
+const elBox = document.querySelector('#box');
 
 // Pure function that returns the next state,
 // given the current state and sent event
