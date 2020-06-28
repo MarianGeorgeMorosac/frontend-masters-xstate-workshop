@@ -15,3 +15,9 @@ const user = {
 };
 
 output(user);
+
+const elButton = document.querySelector('#button');
+
+elButton.addEventListener('click', () => {
+  console.log('I am clicked!');
+})
