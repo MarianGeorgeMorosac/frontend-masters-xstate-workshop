@@ -1,38 +1,45 @@
-import { createMachine, interpret } from "xstate";
+import { createMachine } from "xstate";
 
-const feedbackMachine = createMachine({
-  initial: 'question',
+const someMachine = createMachine({
+  initial: 'active',
   states: {
-    question: {
+    active: {
+      entry: ['enterActive', 'sendTelemetry'],
       on: {
-        CLICK_GOOD: {
-          target: 'thanks'
-        },
-        CLICK_BAD: 'form',
-      }
+        CLICK: {
+          target: 'inactive',
+          actions: 'clickActive'
+        }
+      },
+      exit: 'exitActive'
     },
-    form: {
-      on: {
-        SUBMIT: 'thanks',
-      }
+    inactive: {
+      entry: 'enterInactive'
+    }
+  },
+  actions:  {
+    sendTelemetry: () => { /* ... */ },
+    enterActive: () => {
+      console.log('Entered active');
     },
-    thanks: {
-      on: {
-        CLOSE: 'closed',
-      }
+    clickActive: () => {
+      console.log('Clicked on active');
     },
-    closed: {
-      type: 'final',
+    exitActive: () => {
+      console.log('Exited active');
     },
+    enterInactive: () => {
+      console.log('Entered inactive');
+    }
   }
 });
 
-const feedbackService = interpret(feedbackMachine);
+const service = interpret(someMachine);
 
-feedbackService.onTransition(state => {
+service.onTransition(state => {
   console.log(state.value);
 });
 
-feedbackService.start();
+service.start();
 
-window.send = feedbackService.send;
+window.send = service.send;
